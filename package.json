@@ -13,12 +13,17 @@
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^6.1.1",
     "@mui/material": "^6.5.0",
+    "axios": "^1.16.0",
+    "bcrypt": "^6.0.0",
+    "crypto": "^1.0.1",
     "framer-motion": "^11.0.0",
+    "jsonwebtoken": "^9.0.3",
     "leaflet": "^1.9.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-leaflet": "^4.2.1",
-    "react-router-dom": "^6.26.1"
+    "react-router-dom": "^6.26.1",
+    "validator": "^13.15.35"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.0",
@@ -26,6 +31,6 @@
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
     "tailwindcss": "^4.0.0",
-    "vite": "^5.4.1"
+    "vite": "^8.0.11"
   }
 }

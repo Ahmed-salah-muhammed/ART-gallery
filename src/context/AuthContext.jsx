@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useCallback } from "react";
+import { loginUser, registerUser, logoutUser } from "../services/api.js";
 
 const AuthContext = createContext(null);
 
@@ -11,32 +12,75 @@ export function AuthProvider({ children }) {
     }
   });
 
-  // Accepts either a string email OR a user object {email, name}
-  const login = useCallback((emailOrUser, _password) => {
-    let newUser;
-    if (typeof emailOrUser === "string") {
-      newUser = { email: emailOrUser, name: emailOrUser.split("@")[0] };
-    } else {
-      newUser = {
-        email: emailOrUser.email,
-        name: emailOrUser.name || emailOrUser.email.split("@")[0],
-      };
-    }
-    setUser(newUser);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const login = useCallback(async (email, password) => {
+    setLoading(true);
+    setError(null);
     try {
-      localStorage.setItem("shopwave-user", JSON.stringify(newUser));
-    } catch {}
+      const userData = await loginUser(email, password);
+      setUser(userData);
+      try {
+        localStorage.setItem("shopwave-user", JSON.stringify(userData));
+      } catch {}
+      return userData;
+    } catch (err) {
+      const errorMsg = err.data?.message || err.message || "Login failed";
+      setError(errorMsg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const logout = useCallback(() => {
-    setUser(null);
+  const register = useCallback(async (firstName, lastName, email, password, passwordConfirm) => {
+    setLoading(true);
+    setError(null);
     try {
-      localStorage.removeItem("shopwave-user");
-    } catch {}
+      const userData = await registerUser(firstName, lastName, email, password, passwordConfirm);
+      setUser(userData);
+      try {
+        localStorage.setItem("shopwave-user", JSON.stringify(userData));
+      } catch {}
+      return userData;
+    } catch (err) {
+      const errorMsg = err.data?.message || err.message || "Registration failed";
+      setError(errorMsg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const logout = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      await logoutUser();
+      setUser(null);
+      try {
+        localStorage.removeItem("shopwave-user");
+      } catch {}
+    } catch (err) {
+      setError(err.message || "Logout failed");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoggedIn: !!user }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        register,
+        logout,
+        isLoggedIn: !!user,
+        loading,
+        error,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

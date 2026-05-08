@@ -1,74 +1,141 @@
-// src/context/CartContext.jsx
-import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import * as apiService from "../services/api.js";
+import { useAuth } from "./AuthContext.jsx";
 
-const CartContext = createContext(null)
+const CartContext = createContext(null);
 
 export function CartProvider({ children }) {
-  const [items, setItems] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem('shopwave-cart') || '[]')
-    } catch {
-      return []
-    }
-  })
+  const { isLoggedIn } = useAuth();
+  const [items, setItems] = useState([]);
+  const [totalPrice, setTotalPrice] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Persist to localStorage on every change
+  // Load cart from backend when user logs in
   useEffect(() => {
-    try {
-      localStorage.setItem('shopwave-cart', JSON.stringify(items))
-    } catch {}
-  }, [items])
-
-  /** Total number of individual units in the cart */
-  const totalCount = items.reduce((sum, i) => sum + i.qty, 0)
-
-  /** Total monetary value before tax/shipping */
-  const totalPrice = items.reduce((sum, i) => sum + i.product.price * i.qty, 0)
-
-  /** Add a product (or increase its qty if already present) */
-  const addItem = useCallback((product, qty = 1) => {
-    setItems(prev => {
-      const exists = prev.find(i => i.product.id === product.id)
-      if (exists) {
-        return prev.map(i =>
-          i.product.id === product.id ? { ...i, qty: i.qty + qty } : i
-        )
-      }
-      return [...prev, { product, qty }]
-    })
-  }, [])
-
-  /** Remove a product completely */
-  const removeItem = useCallback((productId) => {
-    setItems(prev => prev.filter(i => i.product.id !== productId))
-  }, [])
-
-  /** Set exact qty for a product — removes if qty <= 0 */
-  const updateQty = useCallback((productId, qty) => {
-    if (qty <= 0) {
-      removeItem(productId)
-      return
+    if (isLoggedIn) {
+      loadCart();
+    } else {
+      setItems([]);
+      setTotalPrice(0);
     }
-    setItems(prev =>
-      prev.map(i => (i.product.id === productId ? { ...i, qty } : i))
-    )
-  }, [removeItem])
+  }, [isLoggedIn]);
 
-  /** Wipe the entire cart */
-  const clearCart = useCallback(() => setItems([]), [])
+  const loadCart = async () => {
+    try {
+      setLoading(true);
+      const cartData = await apiService.getCart();
+      setItems(cartData.items || []);
+      setTotalPrice(cartData.totalPrice || 0);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const totalCount = items.reduce((sum, item) => sum + item.quantity, 0);
+
+  const addItem = useCallback(
+    async (productId, quantity = 1) => {
+      if (!isLoggedIn) {
+        setError("Please login to add items to cart");
+        return;
+      }
+      try {
+        setLoading(true);
+        const updatedCart = await apiService.addToCart(productId, quantity);
+        setItems(updatedCart.items || []);
+        setError(null);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [isLoggedIn]
+  );
+
+  const removeItem = useCallback(
+    async (productId) => {
+      if (!isLoggedIn) return;
+      try {
+        setLoading(true);
+        const updatedCart = await apiService.removeFromCart(productId);
+        setItems(updatedCart.items || []);
+        setError(null);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [isLoggedIn]
+  );
+
+  const updateQty = useCallback(
+    async (productId, quantity) => {
+      if (!isLoggedIn) return;
+      try {
+        setLoading(true);
+        if (quantity <= 0) {
+          await removeItem(productId);
+        } else {
+          const updatedCart = await apiService.updateCartItem(
+            productId,
+            quantity
+          );
+          setItems(updatedCart.items || []);
+        }
+        setError(null);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [isLoggedIn, removeItem]
+  );
+
+  const clearCart = useCallback(async () => {
+    if (!isLoggedIn) return;
+    try {
+      setLoading(true);
+      await apiService.clearCart();
+      setItems([]);
+      setTotalPrice(0);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [isLoggedIn]);
 
   return (
     <CartContext.Provider
-      value={{ items, totalCount, totalPrice, addItem, removeItem, updateQty, clearCart }}
+      value={{
+        items,
+        totalCount,
+        totalPrice,
+        addItem,
+        removeItem,
+        updateQty,
+        clearCart,
+        loading,
+        error,
+        loadCart,
+      }}
     >
       {children}
     </CartContext.Provider>
-  )
+  );
 }
 
-/** Hook — must be used inside <CartProvider> */
 export function useCart() {
-  const ctx = useContext(CartContext)
-  if (!ctx) throw new Error('useCart must be used within CartProvider')
-  return ctx
+  const ctx = useContext(CartContext);
+  if (!ctx) throw new Error("useCart must be used within CartProvider");
+  return ctx;
 }

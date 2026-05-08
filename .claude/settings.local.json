@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(findstr -v node_modules)",
+      "Bash(npm install *)"
+    ]
+  }
+}
