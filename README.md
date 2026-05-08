@@ -87,7 +87,7 @@ vite.config.js
 WALKTHROUGH.md
 ```
 
-## 🚀 Quick Start
+##  Quick Start
 
 ```bash
 npm install
@@ -98,7 +98,7 @@ npm run preview   # preview production build
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 shopwave/
@@ -149,7 +149,7 @@ shopwave/
 Project Link: https://nosej.netlify.app/
 ---
 
-## ✨ Features
+##  Features
 
 ### UI / UX
 - **Announcement Marquee** — infinite scrolling bar, pauses on hover
@@ -178,15 +178,15 @@ Project Link: https://nosej.netlify.app/
 
 ---
 
-## 🌍 GIS Signature Feature
+##  GIS Signature Feature
 
 The Profile page includes a **"Live Order Map"** tab — an SVG-based delivery route
 visualisation showing a mock path from Warehouse → User Location, built as a nod to
-**Ahmed Salah's GIS Analyst background**.
+**Ahmed Salah's GIS Developer background**.
 
 ---
 
-## 🚀 Deploy
+##  Deploy
 
 ### Netlify
 `public/_redirects` is included — SPA routing works out of the box.
@@ -194,12 +194,12 @@ visualisation showing a mock path from Warehouse → User Location, built as a n
 
 ---
 
-## 👤 Developer
+##  Developer
 
-**Ahmed Salah** — GIS Analyst & Full-Stack Developer  
-📧 ahmedsalah219013@gmail.com  
-📱 +20 122 524 6488  
-🐙 [github.com/Ahmed-salah-muhammed](https://github.com/Ahmed-salah-muhammed/)
+**Ahmed Salah** — GIS Engineer & Full-Stack Developer  
+ ahmedsalah219013@gmail.com  
+ +20 122 524 6488  
+ [github.com/Ahmed-salah-muhammed](https://github.com/Ahmed-salah-muhammed/)
 ````
 
 ## File: WALKTHROUGH.md
@@ -210,7 +210,7 @@ Welcome to the comprehensive walkthrough of ShopWave v2! This guide will take yo
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 - Node.js installed on your system
@@ -240,7 +240,7 @@ Welcome to the comprehensive walkthrough of ShopWave v2! This guide will take yo
 
 ---
 
-## 📍 Section 1: Homepage Exploration
+##  Section 1: Homepage Exploration
 
 ### 1.1 Hero Carousel (First Thing You See)
 
@@ -431,7 +431,7 @@ Welcome to the comprehensive walkthrough of ShopWave v2! This guide will take yo
 3. **Observe the effect**: Smooth marquee animation
 
 **Typical Messages:**
-- "🎉 Welcome to ATELIER - Discover Premium Fashion | Free Shipping on Orders Over $150 | New Collection Available Now!"
+- " Welcome to ATELIER - Discover Premium Fashion | Free Shipping on Orders Over $150 | New Collection Available Now!"
 
 ---
 
@@ -459,11 +459,11 @@ Welcome to the comprehensive walkthrough of ShopWave v2! This guide will take yo
 
 | Icon | Function | Behavior |
 |------|----------|----------|
-| 🔍 Search | Find products | Shows live search dropdown |
-| ❤️ Wishlist | View saved items | Navigates to wishlist page |
-| 🛒 Cart | View shopping cart | Shows item count badge + total price |
+|  Search | Find products | Shows live search dropdown |
+|  Wishlist | View saved items | Navigates to wishlist page |
+|  Cart | View shopping cart | Shows item count badge + total price |
 | 🌙/☀️ Theme | Toggle dark/light mode | Changes entire app theme |
-| 👤 User Profile | User account | Shows when logged in; click to go to profile |
+|  User Profile | User account | Shows when logged in; click to go to profile |
 
 **Responsive Behavior:**
 - On mobile: Some icons may be hidden, search bar may collapse
@@ -578,7 +578,7 @@ Four categories of links:
 
 ---
 
-## 🛍️ Section 3: Shop Page Features
+##  Section 3: Shop Page Features
 
 ### 3.1 Accessing the Shop Page
 
@@ -698,7 +698,7 @@ Four categories of links:
 
 ---
 
-## 🛒 Section 4: Cart Page Features
+##  Section 4: Cart Page Features
 
 ### 4.1 Accessing the Cart Page
 
@@ -845,7 +845,7 @@ Each item shows:
 
 ---
 
-## 👤 Section 5: Profile Page & Order Tracking
+##  Section 5: Profile Page & Order Tracking
 
 ### 5.1 Accessing the Profile Page
 
@@ -984,8 +984,8 @@ The map shows a simplified delivery visualization:
 ```
 
 #### Map Components
-1. **Starting Point**: 📦 Warehouse (NY)
-2. **Ending Point**: 🏠 Your Address
+1. **Starting Point**:  Warehouse (NY)
+2. **Ending Point**:  Your Address
 3. **Progress Line**: Animated line connecting the two
 4. **Status Indicator**: Shows current delivery status
 
@@ -1026,7 +1026,7 @@ Below the map visualization:
 
 2. **Click ORD-002** (Shipped):
    - Progress line partially filled
-   - Shows "🚚 In Transit"
+   - Shows " In Transit"
    - Shipped stage highlighted in stepper
 
 3. **Click ORD-003** (Processing):
@@ -1060,7 +1060,7 @@ Below the map visualization:
 
 ---
 
-## 🎨 Section 6: Theme & Design Features
+##  Section 6: Theme & Design Features
 
 ### 6.1 Dark Mode Toggle
 
@@ -1146,7 +1146,7 @@ Below the map visualization:
 
 ---
 
-## 🎬 Section 7: Animations & Interactions
+##  Section 7: Animations & Interactions
 
 ### 7.1 Framer Motion Animations
 
@@ -1194,7 +1194,7 @@ Below the map visualization:
 
 ---
 
-## 🚨 Section 8: Toast Notifications
+##  Section 8: Toast Notifications
 
 ### 8.1 What Are Toasts?
 
@@ -1228,7 +1228,7 @@ Small pop-up messages that appear briefly to confirm actions or show status upda
 
 ---
 
-## 📱 Section 9: Responsive Design Testing
+##  Section 9: Responsive Design Testing
 
 ### 9.1 Testing on Different Screen Sizes
 
@@ -1266,7 +1266,7 @@ Small pop-up messages that appear briefly to confirm actions or show status upda
 
 ---
 
-## 🔍 Section 10: Advanced Features to Explore
+##  Section 10: Advanced Features to Explore
 
 ### 10.1 Product Detail Page
 
@@ -1305,7 +1305,7 @@ Small pop-up messages that appear briefly to confirm actions or show status upda
 
 ---
 
-## 💡 Section 11: Tips & Tricks
+##  Section 11: Tips & Tricks
 
 ### 11.1 Keyboard Shortcuts
 - **Tab**: Navigate through interactive elements
@@ -1333,7 +1333,7 @@ Small pop-up messages that appear briefly to confirm actions or show status upda
 
 ---
 
-## 🎓 Section 12: Learning Resources
+##  Section 12: Learning Resources
 
 ### 12.1 Technology Stack
 
@@ -1362,7 +1362,7 @@ Small pop-up messages that appear briefly to confirm actions or show status upda
 
 ---
 
-## 🎯 Section 13: Common User Scenarios
+##  Section 13: Common User Scenarios
 
 ### Scenario 1: New Visitor Browsing
 1. Land on homepage
@@ -1398,7 +1398,7 @@ Small pop-up messages that appear briefly to confirm actions or show status upda
 
 ---
 
-## ✅ Section 14: Verification Checklist
+##  Section 14: Verification Checklist
 
 Use this checklist to verify all features are working:
 
@@ -1425,17 +1425,17 @@ Use this checklist to verify all features are working:
 
 ---
 
-## 🎉 Conclusion
+##  Conclusion
 
 You've now explored all the major features of ShopWave v2! The application demonstrates modern e-commerce best practices with:
 
-✨ **Beautiful Design** - Professional UI with smooth animations
-🛍️ **Complete Shopping Experience** - Browse, filter, cart, checkout
-📦 **Advanced Order Tracking** - Progress tracker with GIS map
-📱 **Responsive Design** - Works perfectly on all devices
-🎨 **Dark Mode Support** - Comfortable viewing in any lighting
-⚡ **Smooth Interactions** - Framer Motion animations throughout
-🔒 **Professional Polish** - Attention to detail in every component
+ **Beautiful Design** - Professional UI with smooth animations
+ **Complete Shopping Experience** - Browse, filter, cart, checkout
+ **Advanced Order Tracking** - Progress tracker with GIS map
+ **Responsive Design** - Works perfectly on all devices
+ **Dark Mode Support** - Comfortable viewing in any lighting
+ **Smooth Interactions** - Framer Motion animations throughout
+ **Professional Polish** - Attention to detail in every component
 
 Thank you for exploring ShopWave v2. Enjoy your shopping experience!
 
