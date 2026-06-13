@@ -12,7 +12,7 @@ import QuantityControl from "../components/QuantityControl";
 import Breadcrumbs from "../components/Breadcrumbs";
 import Footer from "../components/Footer";
 
-function CartItemRow({ product, qty }) {
+function CartItemRow({ product, quantity }) {
   const { removeItem, updateQty } = useCart();
   const isSale = product.discountPercentage > 10;
   return (
@@ -30,7 +30,7 @@ function CartItemRow({ product, qty }) {
             {product.title}
           </h3>
           <button
-            onClick={() => removeItem(product.id)}
+            onClick={() => removeItem(product._id)}
             className="p-1 text-gray-300 hover:text-red-600 hover:bg-red-50 rounded-full transition-all"
           >
             <CloseIcon fontSize="small" />
@@ -41,20 +41,20 @@ function CartItemRow({ product, qty }) {
         </span>
         <div className="flex items-center justify-between gap-4">
           <QuantityControl
-            value={qty}
-            onChange={(v) => updateQty(product.id, v)}
+            value={quantity}
+            onChange={(v) => updateQty(product._id, v)}
             size="sm"
           />
           <div className="text-right">
             <span className="block font-black text-lg text-gray-900">
-              ${(product.price * qty).toFixed(2)}
+              ${(product.price * quantity).toFixed(2)}
             </span>
             {isSale && (
               <span className="text-[10px] font-bold text-gray-400 line-through">
                 $
                 {(
                   (product.price / (1 - product.discountPercentage / 100)) *
-                  qty
+                  quantity
                 ).toFixed(2)}
               </span>
             )}
@@ -133,8 +133,12 @@ export default function Cart() {
             </div>
 
             <div className="bg-white rounded-[32px] border border-gray-100 p-8 shadow-sm">
-              {items.map(({ product, qty }) => (
-                <CartItemRow key={product.id} product={product} qty={qty} />
+              {items.map(({ product, quantity }) => (
+                <CartItemRow
+                  key={product._id}
+                  product={product}
+                  quantity={quantity}
+                />
               ))}
             </div>
 

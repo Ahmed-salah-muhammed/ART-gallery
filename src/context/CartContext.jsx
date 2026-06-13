@@ -4,10 +4,13 @@ import { useAuth } from "./AuthContext.jsx";
 
 const CartContext = createContext(null);
 
+// Call sites pass either a product object or a raw id — normalize to the id
+// the backend expects (Mongo _id, also exposed as `id` on serialized products).
+const idOf = (p) => (p && typeof p === "object" ? p._id || p.id : p);
+
 export function CartProvider({ children }) {
   const { isLoggedIn } = useAuth();
   const [items, setItems] = useState([]);
-  const [totalPrice, setTotalPrice] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -17,7 +20,6 @@ export function CartProvider({ children }) {
       loadCart();
     } else {
       setItems([]);
-      setTotalPrice(0);
     }
   }, [isLoggedIn]);
 
@@ -26,7 +28,6 @@ export function CartProvider({ children }) {
       setLoading(true);
       const cartData = await apiService.getCart();
       setItems(cartData.items || []);
-      setTotalPrice(cartData.totalPrice || 0);
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -36,17 +37,22 @@ export function CartProvider({ children }) {
     }
   };
 
-  const totalCount = items.reduce((sum, item) => sum + item.quantity, 0);
+  // Derived from items so they never go stale after add/remove/update.
+  const totalCount = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
+  const totalPrice = items.reduce(
+    (sum, item) => sum + (item.product?.price || 0) * (item.quantity || 0),
+    0
+  );
 
   const addItem = useCallback(
-    async (productId, quantity = 1) => {
+    async (product, quantity = 1) => {
       if (!isLoggedIn) {
         setError("Please login to add items to cart");
         return;
       }
       try {
         setLoading(true);
-        const updatedCart = await apiService.addToCart(productId, quantity);
+        const updatedCart = await apiService.addToCart(idOf(product), quantity);
         setItems(updatedCart.items || []);
         setError(null);
       } catch (err) {
@@ -59,11 +65,11 @@ export function CartProvider({ children }) {
   );
 
   const removeItem = useCallback(
-    async (productId) => {
+    async (product) => {
       if (!isLoggedIn) return;
       try {
         setLoading(true);
-        const updatedCart = await apiService.removeFromCart(productId);
+        const updatedCart = await apiService.removeFromCart(idOf(product));
         setItems(updatedCart.items || []);
         setError(null);
       } catch (err) {
@@ -76,15 +82,15 @@ export function CartProvider({ children }) {
   );
 
   const updateQty = useCallback(
-    async (productId, quantity) => {
+    async (product, quantity) => {
       if (!isLoggedIn) return;
       try {
         setLoading(true);
         if (quantity <= 0) {
-          await removeItem(productId);
+          await removeItem(product);
         } else {
           const updatedCart = await apiService.updateCartItem(
-            productId,
+            idOf(product),
             quantity
           );
           setItems(updatedCart.items || []);
@@ -105,7 +111,6 @@ export function CartProvider({ children }) {
       setLoading(true);
       await apiService.clearCart();
       setItems([]);
-      setTotalPrice(0);
       setError(null);
     } catch (err) {
       setError(err.message);

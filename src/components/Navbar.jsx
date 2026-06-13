@@ -8,6 +8,7 @@ import {
   List,
   ListItem,
   ListItemText,
+  Avatar,
 } from "@mui/material";
 import {
   Search as SearchIcon,
@@ -24,6 +25,7 @@ import { useWishlist } from "../context/WishlistContext";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
 import { fetchProducts } from "../services/api";
+import Logo from "./Logo";
 
 /* ── Announcement Bar ─────────────────────────────────────────── */
 function AnnouncementBar() {
@@ -218,12 +220,8 @@ export default function Navbar() {
             ) : (
               <>
                 {/* Logo */}
-                <NavLink
-                  to="/"
-                  className="text-2xl font-black tracking-widest font-serif"
-                  style={{ color: "var(--color-on-surface)" }}
-                >
-                  NOSEJ
+                <NavLink to="/" style={{ color: "var(--color-on-surface)" }}>
+                  <Logo size={26} wordClassName="text-lg" />
                 </NavLink>
 
                 {/* Nav Links */}
@@ -316,11 +314,27 @@ export default function Navbar() {
 
                   {user ? (
                     <div className="flex items-center gap-3">
+                      <Tooltip title="Profile">
+                        <NavLink to="/profile">
+                          <Avatar
+                            src={user.profilePhoto || undefined}
+                            sx={{
+                              width: 30,
+                              height: 30,
+                              fontSize: 13,
+                              fontWeight: 900,
+                              bgcolor: "#131b2e",
+                            }}
+                          >
+                            {(user.firstName || user.email)?.[0]?.toUpperCase()}
+                          </Avatar>
+                        </NavLink>
+                      </Tooltip>
                       <span
                         className="text-xs font-black hidden sm:block"
                         style={{ color: "var(--color-on-surface)" }}
                       >
-                        {user.name}
+                        {user.fullName || user.firstName || user.name}
                       </span>
                       <button
                         onClick={() => {
@@ -369,12 +383,9 @@ export default function Navbar() {
       >
         <div className="w-72 p-8">
           <div className="flex justify-between items-center mb-10">
-            <h2
-              className="text-2xl font-black font-serif tracking-widest"
-              style={{ color: "var(--color-on-surface)" }}
-            >
-              NOSEJ
-            </h2>
+            <span style={{ color: "var(--color-on-surface)" }}>
+              <Logo size={24} wordClassName="text-base" />
+            </span>
             <button
               style={{ ...iconBtnStyle, padding: "6px" }}
               onClick={() => setMobileOpen(false)}

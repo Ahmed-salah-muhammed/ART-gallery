@@ -178,8 +178,9 @@ function BrandStory() {
               Worn with Pride
             </h2>
             <p className="text-gray-500 text-lg leading-relaxed mb-6">
-              NOSEJ was born from a simple belief: that quality and style should
-              never be mutually exclusive. Founded in 2013, we set out to bridge
+              A R T. Gallery was born from a simple belief: that quality and
+              style should never be mutually exclusive. Founded in 2013, we set
+              out to bridge
               the gap between luxury craftsmanship and everyday accessibility.
             </p>
             <p className="text-gray-500 text-lg leading-relaxed mb-10">
@@ -204,7 +205,7 @@ const REVIEWS = [
     id: 1,
     name: "Raafat Kamel",
     role: "GIS Developer",
-    text: "The attention to detail in every piece is remarkable. NOSEJ has truly redefined modern luxury for me.",
+    text: "The attention to detail in every piece is remarkable. A R T. Gallery has truly redefined modern luxury for me.",
     rating: 5,
     avatar: "https://i.pravatar.cc/150?u=sadas",
   },

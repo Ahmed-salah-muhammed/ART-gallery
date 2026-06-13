@@ -4,6 +4,9 @@ import { useAuth } from "./AuthContext.jsx";
 
 const WishlistContext = createContext();
 
+// Call sites pass either a product object or a raw id — normalize to the id.
+const idOf = (p) => (p && typeof p === "object" ? p._id || p.id : p);
+
 export function WishlistProvider({ children }) {
   const { isLoggedIn } = useAuth();
   const [products, setProducts] = useState([]);
@@ -34,19 +37,18 @@ export function WishlistProvider({ children }) {
   };
 
   const toggleWishlist = useCallback(
-    async (productId) => {
+    async (product) => {
       if (!isLoggedIn) {
         setError("Please login to manage wishlist");
         return;
       }
 
-      const isInWishlist = products.some(
-        (p) => (p._id || p.id) === productId
-      );
+      const productId = idOf(product);
+      const alreadyIn = products.some((p) => (p._id || p.id) === productId);
 
       try {
         setLoading(true);
-        if (isInWishlist) {
+        if (alreadyIn) {
           await apiService.removeFromWishlist(productId);
           setProducts((prev) =>
             prev.filter((p) => (p._id || p.id) !== productId)
@@ -66,13 +68,15 @@ export function WishlistProvider({ children }) {
     [isLoggedIn, products]
   );
 
-  const isInWishlist = (productId) => {
+  const isInWishlist = (product) => {
+    const productId = idOf(product);
     return products.some((p) => (p._id || p.id) === productId);
   };
 
   const removeItem = useCallback(
-    async (productId) => {
+    async (product) => {
       if (!isLoggedIn) return;
+      const productId = idOf(product);
       try {
         setLoading(true);
         await apiService.removeFromWishlist(productId);

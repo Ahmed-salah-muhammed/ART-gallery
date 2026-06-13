@@ -36,9 +36,9 @@ export default function ProductCard({ product, index = 0 }) {
     );
   };
 
-  const isNew = product.id % 3 === 0;
+  const isNew = (product.stock ?? 0) % 3 === 0;
   const isSale = product.discountPercentage > 10;
-  const isNosej = product.category === "nosej";
+  const isHouse = product.category === "art";
 
   return (
     <div
@@ -58,12 +58,12 @@ export default function ProductCard({ product, index = 0 }) {
       >
         {/* Badges */}
         <div className="absolute top-2.5 left-2.5 flex gap-1 z-10">
-          {isNosej && (
-            <span className="bg-[#2a14b4] text-white text-[10px] font-black px-2 py-0.5 rounded uppercase">
-              NOSEJ
+          {isHouse && (
+            <span className="bg-[#2a14b4] text-white text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-wider">
+              A R T.
             </span>
           )}
-          {isNew && !isNosej && (
+          {isNew && !isHouse && (
             <span className="bg-[#131b2e] text-white text-[10px] font-black px-2 py-0.5 rounded uppercase">
               NEW
             </span>
@@ -97,7 +97,7 @@ export default function ProductCard({ product, index = 0 }) {
             size="small"
             onClick={(e) => {
               e.stopPropagation();
-              navigate(`/product/${product.id}`);
+              navigate(`/shop/${product.id}`);
             }}
             sx={{
               bgcolor: "white",

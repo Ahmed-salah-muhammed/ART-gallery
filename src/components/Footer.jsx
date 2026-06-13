@@ -11,6 +11,7 @@ import {
   Phone as PhoneIcon,
   CheckCircle as CheckIcon,
 } from "@mui/icons-material";
+import Logo from "./Logo";
 
 const SHOP_LINKS = [
   "New Arrivals",
@@ -102,17 +103,17 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-16">
           {/* Brand Column */}
           <div className="md:col-span-4">
-            <h2
-              className="text-2xl font-black mb-4 font-serif tracking-widest"
+            <div
+              className="mb-4"
               style={{ color: "var(--color-on-surface)" }}
             >
-              NOSEJ
-            </h2>
+              <Logo size={30} wordClassName="text-xl" />
+            </div>
             <p
               className="text-sm leading-relaxed mb-6 max-w-sm"
               style={{ color: "var(--color-on-surface-variant)" }}
             >
-              The Digital Atelier — a destination for those who value
+              The Digital Gallery — a destination for those who value
               craftsmanship, minimalism, and the art of the modern wardrobe.
             </p>
 
@@ -283,11 +284,11 @@ export default function Footer() {
             className="text-[11px]"
             style={{ color: "var(--color-on-surface-variant)" }}
           >
-            `© {new Date().getFullYear() + " "}
+            © {new Date().getFullYear() + " "}
             <strong style={{ color: "var(--color-on-surface)" }}>
               Ahmed Salah
             </strong>{" "}
-            — Nosej Digital Boutique. All rights reserved.
+            — A R T. Gallery. All rights reserved.
           </p>
           <div className="flex gap-6">
             {["Privacy Policy", "Terms of Service", "Cookie Policy"].map(

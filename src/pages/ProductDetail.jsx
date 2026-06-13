@@ -280,7 +280,7 @@ export default function ProductDetail() {
                   >
                     <span className="flex items-center gap-2">
                       <PlaceIcon sx={{ fontSize: 16 }} />
-                      Find in Store — Nosej Cairo
+                      Find in Store — A R T. Gallery Cairo
                     </span>
                     <span
                       className={`text-[10px] transition-transform duration-300 ${showMap ? "rotate-180" : ""}`}

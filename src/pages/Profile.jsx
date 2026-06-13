@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Avatar, Button, Tab, Tabs } from "@mui/material";
+import { Avatar, Button, Tab, Tabs, TextField, CircularProgress } from "@mui/material";
 import {
   CheckCircle as CheckIcon,
   LocalShipping as ShipIcon,
@@ -11,11 +11,20 @@ import {
   Route as RouteIcon,
   AccessTime as EtaIcon,
   Straighten as DistIcon,
+  PhotoCamera as CameraIcon,
+  ShoppingBagOutlined as BagIcon,
 } from "@mui/icons-material";
 import L from "leaflet";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
+import { useToast } from "../context/ToastContext";
+import {
+  getUserProfile,
+  updateUserProfile,
+  getUserOrders,
+} from "../services/api";
+import { fileToCompressedDataUrl } from "../utils/image";
 import Breadcrumbs from "../components/Breadcrumbs";
 import Footer from "../components/Footer";
 
@@ -188,7 +197,7 @@ function GISTrackingMap() {
       .addTo(mapInst.current)
       .bindPopup(
         `<div style="font-family:Inter,sans-serif;min-width:150px;">
-        <strong style="font-size:13px;">🏪 Nosej Store</strong><br/>
+        <strong style="font-size:13px;">🏪 A R T. Gallery Store</strong><br/>
         <span style="font-size:11px;color:#666;">Central Maadi, Cairo</span>
       </div>`,
       )
@@ -345,7 +354,7 @@ function GISTrackingMap() {
         className="text-sm leading-relaxed mb-6"
         style={{ color: "var(--color-on-surface-variant)" }}
       >
-        Real-time street-routing from your location to the Nosej store in Maadi.
+        Real-time street-routing from your location to the A R T. Gallery store in Maadi.
         Position updates automatically every 5 seconds.
       </p>
 
@@ -493,30 +502,275 @@ function GISTrackingMap() {
   );
 }
 
-// ── Mock Orders ───────────────────────────────────────────────────────────
-const MOCK_ORDERS = [
-  {
-    id: "ATL-20250320",
-    date: "Mar 20, 2025",
-    total: 142.5,
-    items: 3,
-    status: "Shipped",
-  },
-  {
-    id: "ATL-20250210",
-    date: "Feb 10, 2025",
-    total: 89.99,
-    items: 1,
-    status: "Delivered",
-  },
-  {
-    id: "ATL-20250115",
-    date: "Jan 15, 2025",
-    total: 210.0,
-    items: 4,
-    status: "Delivered",
-  },
-];
+// ── Account Settings Tab ──────────────────────────────────────────────────
+function AccountTab() {
+  const { user, updateUser } = useAuth();
+  const toast = useToast();
+  const fileRef = useRef(null);
+
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    phone: "",
+    street: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    country: "",
+  });
+  const [photo, setPhoto] = useState(user?.profilePhoto || null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    getUserProfile()
+      .then((p) => {
+        if (!active || !p) return;
+        setForm({
+          firstName: p.firstName || "",
+          lastName: p.lastName || "",
+          phone: p.phone || "",
+          street: p.address?.street || "",
+          city: p.address?.city || "",
+          state: p.address?.state || "",
+          zipCode: p.address?.zipCode || "",
+          country: p.address?.country || "",
+        });
+        setPhoto(p.profilePhoto || null);
+      })
+      .catch(() => {})
+      .finally(() => active && setLoading(false));
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const set = (f) => (e) => setForm((s) => ({ ...s, [f]: e.target.value }));
+
+  const handlePhoto = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const dataUrl = await fileToCompressedDataUrl(file);
+      const updated = await updateUserProfile({ profilePhoto: dataUrl });
+      const next = updated?.profilePhoto || dataUrl;
+      setPhoto(next);
+      updateUser({ profilePhoto: next });
+      toast("Profile photo updated ✨", "success");
+    } catch (err) {
+      toast(err.data?.message || err.message || "Could not update photo", "error");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const updated = await updateUserProfile({
+        firstName: form.firstName,
+        lastName: form.lastName,
+        phone: form.phone,
+        address: {
+          street: form.street,
+          city: form.city,
+          state: form.state,
+          zipCode: form.zipCode,
+          country: form.country,
+        },
+      });
+      updateUser({
+        firstName: updated?.firstName,
+        lastName: updated?.lastName,
+        fullName: updated?.fullName,
+        phone: updated?.phone,
+      });
+      toast("Profile saved successfully", "success");
+    } catch (err) {
+      toast(err.data?.message || err.message || "Update failed", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-20">
+        <CircularProgress sx={{ color: "#131b2e" }} />
+      </div>
+    );
+  }
+
+  const fieldSx = { "& .MuiOutlinedInput-root": { borderRadius: "12px" } };
+
+  return (
+    <div
+      className="p-8 sm:p-10 rounded-[32px] border"
+      style={{
+        backgroundColor: "var(--color-surface)",
+        borderColor: "var(--color-outline-variant)",
+      }}
+    >
+      {/* Photo */}
+      <div className="flex items-center gap-6 mb-10">
+        <div className="relative">
+          <Avatar
+            src={photo || undefined}
+            sx={{ width: 88, height: 88, fontSize: 32, fontWeight: 900, bgcolor: "#131b2e" }}
+          >
+            {(form.firstName || user?.email)?.[0]?.toUpperCase()}
+          </Avatar>
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            className="absolute -bottom-1 -right-1 w-9 h-9 rounded-full bg-[#131b2e] text-white flex items-center justify-center shadow-lg hover:bg-black transition-all disabled:opacity-60"
+            title="Change photo"
+          >
+            {uploading ? (
+              <CircularProgress size={16} color="inherit" />
+            ) : (
+              <CameraIcon sx={{ fontSize: 18 }} />
+            )}
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={handlePhoto}
+          />
+        </div>
+        <div>
+          <h3 className="text-lg font-black" style={{ color: "var(--color-on-surface)" }}>
+            Profile photo
+          </h3>
+          <p className="text-xs font-bold" style={{ color: "var(--color-on-surface-variant)" }}>
+            JPG or PNG. Square images look best.
+          </p>
+        </div>
+      </div>
+
+      <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <TextField label="First Name" value={form.firstName} onChange={set("firstName")} variant="outlined" sx={fieldSx} />
+        <TextField label="Last Name" value={form.lastName} onChange={set("lastName")} variant="outlined" sx={fieldSx} />
+        <TextField label="Email" value={user?.email || ""} disabled variant="outlined" sx={fieldSx} />
+        <TextField label="Phone" type="tel" placeholder="+20 100 000 0000" value={form.phone} onChange={set("phone")} variant="outlined" sx={fieldSx} />
+        <div className="md:col-span-2">
+          <TextField fullWidth label="Street Address" value={form.street} onChange={set("street")} variant="outlined" sx={fieldSx} />
+        </div>
+        <TextField label="City" value={form.city} onChange={set("city")} variant="outlined" sx={fieldSx} />
+        <TextField label="State / Province" value={form.state} onChange={set("state")} variant="outlined" sx={fieldSx} />
+        <TextField label="ZIP / Postcode" value={form.zipCode} onChange={set("zipCode")} variant="outlined" sx={fieldSx} />
+        <TextField label="Country" value={form.country} onChange={set("country")} variant="outlined" sx={fieldSx} />
+        <div className="md:col-span-2 flex justify-end mt-2">
+          <button
+            type="submit"
+            disabled={saving}
+            className="px-10 py-3.5 bg-[#131b2e] text-white font-black text-xs tracking-widest rounded-xl hover:bg-black transition-all flex items-center gap-3 disabled:opacity-50 uppercase"
+          >
+            {saving ? <CircularProgress size={16} color="inherit" /> : null}
+            Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+// ── Orders Tab ────────────────────────────────────────────────────────────
+const STATUS_STYLES = {
+  delivered: "bg-green-50 text-green-600",
+  shipped: "bg-blue-50 text-blue-600",
+  confirmed: "bg-indigo-50 text-indigo-600",
+  pending: "bg-amber-50 text-amber-600",
+  cancelled: "bg-red-50 text-red-600",
+};
+
+function OrdersTab({ orders, loading, onTrack }) {
+  if (loading) {
+    return (
+      <div className="flex justify-center py-20">
+        <CircularProgress sx={{ color: "#131b2e" }} />
+      </div>
+    );
+  }
+
+  if (!orders.length) {
+    return (
+      <div className="text-center py-20">
+        <BagIcon sx={{ fontSize: 64, color: "var(--color-outline-variant)" }} />
+        <h3 className="text-xl font-black mt-4 mb-2" style={{ color: "var(--color-on-surface)" }}>
+          No orders yet
+        </h3>
+        <p className="text-sm mb-8" style={{ color: "var(--color-on-surface-variant)" }}>
+          When you place an order, it'll show up here.
+        </p>
+        <a
+          href="/shop"
+          className="px-8 py-3 bg-[#131b2e] text-white font-black text-xs tracking-widest rounded-xl hover:bg-black transition-all uppercase"
+        >
+          Start Shopping
+        </a>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      {orders.map((order) => {
+        const status = (order.status || "pending").toLowerCase();
+        const date = new Date(order.createdAt).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        });
+        return (
+          <div
+            key={order._id}
+            className="p-6 rounded-2xl border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 transition-shadow hover:shadow-md"
+            style={{
+              backgroundColor: "var(--color-surface)",
+              borderColor: "var(--color-outline-variant)",
+            }}
+          >
+            <div>
+              <h4 className="font-black mb-1" style={{ color: "var(--color-on-surface)" }}>
+                #{String(order._id).slice(-8).toUpperCase()}
+              </h4>
+              <p className="text-xs font-bold" style={{ color: "var(--color-on-surface-variant)" }}>
+                {date} · {order.items?.length || 0} item
+                {(order.items?.length || 0) === 1 ? "" : "s"}
+              </p>
+            </div>
+            <div className="flex items-center gap-6 w-full sm:w-auto justify-between sm:justify-end">
+              <span className="text-xl font-black" style={{ color: "var(--color-on-surface)" }}>
+                ${Number(order.totalPrice || 0).toFixed(2)}
+              </span>
+              <span
+                className={`px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-widest ${STATUS_STYLES[status] || "bg-gray-100 text-gray-600"}`}
+              >
+                {status}
+              </span>
+              <button
+                onClick={onTrack}
+                className="text-[10px] font-black hover:underline tracking-widest uppercase"
+                style={{ color: "var(--color-primary)" }}
+              >
+                TRACK
+              </button>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 // ── Profile Page ──────────────────────────────────────────────────────────
 export default function Profile() {
@@ -524,6 +778,19 @@ export default function Profile() {
   const { totalCount } = useCart();
   const { wishlist } = useWishlist();
   const [tab, setTab] = useState(0);
+  const [orders, setOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    getUserOrders()
+      .then((data) => active && setOrders(data || []))
+      .catch(() => {})
+      .finally(() => active && setLoadingOrders(false));
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <div
@@ -558,21 +825,24 @@ export default function Profile() {
               }}
             >
               <Avatar
+                src={user?.profilePhoto || undefined}
                 sx={{
                   width: 96,
                   height: 96,
-                  bgcolor: "",
+                  bgcolor: "#131b2e",
+                  fontWeight: 900,
                   mx: "auto",
                   mb: 3,
                 }}
               >
-                {user?.name?.[0]?.toUpperCase() || "A"}
+                {(user?.fullName || user?.firstName || user?.name)?.[0]?.toUpperCase() ||
+                  "A"}
               </Avatar>
               <h2
                 className="text-xl font-black mb-1"
                 style={{ color: "var(--color-on-surface)" }}
               >
-                {user?.name}
+                {user?.fullName || user?.firstName || user?.name}
               </h2>
               <p
                 className="text-sm mb-8"
@@ -592,7 +862,7 @@ export default function Profile() {
                 {[
                   { label: "Cart", value: totalCount },
                   { label: "Wishlist", value: wishlist.length },
-                  { label: "Orders", value: MOCK_ORDERS.length },
+                  { label: "Orders", value: orders.length },
                 ].map((s) => (
                   <div key={s.label} className="text-center">
                     <span className="block text-xl font-black">{s.value}</span>
@@ -624,6 +894,8 @@ export default function Profile() {
               <Tabs
                 value={tab}
                 onChange={(_, v) => setTab(v)}
+                variant="scrollable"
+                scrollButtons="auto"
                 sx={{
                   "& .MuiTab-root": {
                     fontWeight: 900,
@@ -636,65 +908,27 @@ export default function Profile() {
                   "& .MuiTabs-indicator": { bgcolor: "#131b2e" },
                 }}
               >
+                <Tab label="Account" />
                 <Tab label="Order History" />
                 <Tab label="Track Order" />
                 <Tab label="Live Map" />
               </Tabs>
             </div>
 
-            {/* ── Tab 0: Orders ── */}
-            {tab === 0 && (
-              <div className="flex flex-col gap-4">
-                {MOCK_ORDERS.map((order) => (
-                  <div
-                    key={order.id}
-                    className="p-6 rounded-2xl border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 transition-shadow hover:shadow-md"
-                    style={{
-                      backgroundColor: "var(--color-surface)",
-                      borderColor: "var(--color-outline-variant)",
-                    }}
-                  >
-                    <div>
-                      <h4
-                        className="font-black mb-1"
-                        style={{ color: "var(--color-on-surface)" }}
-                      >
-                        {order.id}
-                      </h4>
-                      <p
-                        className="text-xs font-bold"
-                        style={{ color: "var(--color-on-surface-variant)" }}
-                      >
-                        {order.date} · {order.items} items
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-6 w-full sm:w-auto justify-between sm:justify-end">
-                      <span
-                        className="text-xl font-black"
-                        style={{ color: "var(--color-on-surface)" }}
-                      >
-                        ${order.total.toFixed(2)}
-                      </span>
-                      <span
-                        className={`px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-widest ${order.status === "Delivered" ? "bg-green-50 text-green-600" : "bg-blue-50 text-blue-600"}`}
-                      >
-                        {order.status}
-                      </span>
-                      <button
-                        onClick={() => setTab(2)}
-                        className="text-[10px] font-black hover:underline tracking-widest uppercase"
-                        style={{ color: "var(--color-primary)" }}
-                      >
-                        TRACK
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            {/* ── Tab 0: Account ── */}
+            {tab === 0 && <AccountTab />}
+
+            {/* ── Tab 1: Orders ── */}
+            {tab === 1 && (
+              <OrdersTab
+                orders={orders}
+                loading={loadingOrders}
+                onTrack={() => setTab(2)}
+              />
             )}
 
-            {/* ── Tab 1: Order Tracker ── */}
-            {tab === 1 && (
+            {/* ── Tab 2: Order Tracker ── */}
+            {tab === 2 && (
               <div
                 className="p-10 rounded-[32px] border"
                 style={{
@@ -706,8 +940,8 @@ export default function Profile() {
               </div>
             )}
 
-            {/* ── Tab 2: Live Map ── */}
-            {tab === 2 && (
+            {/* ── Tab 3: Live Map ── */}
+            {tab === 3 && (
               <div
                 className="p-8 rounded-[32px] border"
                 style={{

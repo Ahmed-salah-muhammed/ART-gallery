@@ -92,7 +92,7 @@ export default function StreetMap({ productTitle }) {
       .addTo(mapInst.current)
       .bindPopup(`
         <div style="font-family:Inter,sans-serif;min-width:140px;">
-          <strong style="font-size:13px;">Nosej Store</strong><br/>
+          <strong style="font-size:13px;">A R T. Gallery Store</strong><br/>
           <span style="font-size:11px;color:#666;">Central Cairo</span>
         </div>`)
       .openPopup()
@@ -233,7 +233,7 @@ export default function StreetMap({ productTitle }) {
         )}
 
         <p className="text-[10px] text-gray-400 font-bold text-center">
-          🏪 Nosej Store — Central Cairo, Egypt
+          🏪 A R T. Gallery Store — Central Cairo, Egypt
         </p>
       </div>
     </div>

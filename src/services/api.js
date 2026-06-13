@@ -2,52 +2,92 @@ import api from "../config/api.js";
 
 // ========== PRODUCTS ==========
 export async function fetchProducts(filters = {}) {
-  const { data } = await api.get("/products", { params: filters });
+  // The axios response interceptor already unwraps to the JSON body,
+  // which is { success, count, products }.
+  const data = await api.get("/products", { params: filters });
   return data.products || [];
 }
 
 export async function fetchProduct(id) {
-  const { data } = await api.get(`/products/${id}`);
+  const data = await api.get(`/products/${id}`);
   return data.product;
 }
 
 export async function fetchCategories() {
-  const { data } = await api.get("/products/categories");
+  const data = await api.get("/products/categories");
   return data.categories || [];
 }
 
 // ========== AUTH ==========
-export async function registerUser(
+const persistToken = (token) => {
+  if (token) localStorage.setItem("shopwave-token", token);
+};
+
+export async function registerUser({
   firstName,
   lastName,
   email,
+  phone,
   password,
-  passwordConfirm
-) {
+  passwordConfirm,
+}) {
+  // Strict verification: registration does NOT return a session token.
+  // Returns { needsVerification, email, message }.
   const data = await api.post("/auth/register", {
     firstName,
     lastName,
     email,
+    phone,
     password,
     passwordConfirm,
   });
-  if (data.token) {
-    localStorage.setItem("shopwave-token", data.token);
-  }
-  return data.user;
+  return data;
 }
 
 export async function loginUser(email, password) {
   const data = await api.post("/auth/login", { email, password });
-  if (data.token) {
-    localStorage.setItem("shopwave-token", data.token);
-  }
+  persistToken(data.token);
   return data.user;
 }
 
 export async function logoutUser() {
   localStorage.removeItem("shopwave-token");
   localStorage.removeItem("shopwave-user");
+}
+
+export async function verifyEmail(token) {
+  const data = await api.post(`/auth/verify-email/${token}`);
+  persistToken(data.token);
+  return data.user;
+}
+
+export async function resendVerification(email) {
+  return api.post("/auth/resend-verification", { email });
+}
+
+export async function forgotPassword(email) {
+  return api.post("/auth/forgot-password", { email });
+}
+
+export async function resetPassword(token, password, passwordConfirm) {
+  const data = await api.post(`/auth/reset-password/${token}`, {
+    password,
+    passwordConfirm,
+  });
+  persistToken(data.token);
+  return data.user;
+}
+
+export async function googleAuth(credential) {
+  const data = await api.post("/auth/google", { credential });
+  persistToken(data.token);
+  return data.user;
+}
+
+export async function facebookAuth(accessToken, userID) {
+  const data = await api.post("/auth/facebook", { accessToken, userID });
+  persistToken(data.token);
+  return data.user;
 }
 
 // ========== CART ==========

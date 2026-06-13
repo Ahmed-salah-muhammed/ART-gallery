@@ -1,5 +1,15 @@
 import { createContext, useContext, useState, useCallback } from "react";
-import { loginUser, registerUser, logoutUser } from "../services/api.js";
+import {
+  loginUser,
+  registerUser,
+  logoutUser,
+  verifyEmail as verifyEmailApi,
+  resendVerification as resendVerificationApi,
+  forgotPassword as forgotPasswordApi,
+  resetPassword as resetPasswordApi,
+  googleAuth as googleAuthApi,
+  facebookAuth as facebookAuthApi,
+} from "../services/api.js";
 
 const AuthContext = createContext(null);
 
@@ -15,58 +25,116 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const login = useCallback(async (email, password) => {
-    setLoading(true);
-    setError(null);
+  // Persist a freshly authenticated user (login / verify / reset / OAuth).
+  const setSession = useCallback((userData) => {
+    setUser(userData);
     try {
-      const userData = await loginUser(email, password);
-      setUser(userData);
-      try {
-        localStorage.setItem("shopwave-user", JSON.stringify(userData));
-      } catch {}
-      return userData;
-    } catch (err) {
-      const errorMsg = err.data?.message || err.message || "Login failed";
-      setError(errorMsg);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
+      localStorage.setItem("shopwave-user", JSON.stringify(userData));
+    } catch {}
+    return userData;
   }, []);
 
-  const register = useCallback(async (firstName, lastName, email, password, passwordConfirm) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const userData = await registerUser(firstName, lastName, email, password, passwordConfirm);
-      setUser(userData);
+  // Merge updates into the current user (e.g. profile edits, photo upload).
+  const updateUser = useCallback((patch) => {
+    setUser((prev) => {
+      const next = { ...prev, ...patch };
       try {
-        localStorage.setItem("shopwave-user", JSON.stringify(userData));
+        localStorage.setItem("shopwave-user", JSON.stringify(next));
       } catch {}
-      return userData;
-    } catch (err) {
-      const errorMsg = err.data?.message || err.message || "Registration failed";
-      setError(errorMsg);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
+      return next;
+    });
   }, []);
+
+  const runAuth = useCallback(
+    async (fn, fallbackMsg) => {
+      setLoading(true);
+      setError(null);
+      try {
+        return await fn();
+      } catch (err) {
+        const msg = err.data?.message || err.message || fallbackMsg;
+        setError(msg);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  const login = useCallback(
+    (email, password) =>
+      runAuth(
+        async () => setSession(await loginUser(email, password)),
+        "Login failed"
+      ),
+    [runAuth, setSession]
+  );
+
+  // Strict verification: register does NOT log the user in. Returns the
+  // server response ({ needsVerification, email, message }).
+  const register = useCallback(
+    (payload) => runAuth(() => registerUser(payload), "Registration failed"),
+    [runAuth]
+  );
+
+  const verifyEmail = useCallback(
+    (token) =>
+      runAuth(
+        async () => setSession(await verifyEmailApi(token)),
+        "Verification failed"
+      ),
+    [runAuth, setSession]
+  );
+
+  const resendVerification = useCallback(
+    (email) =>
+      runAuth(() => resendVerificationApi(email), "Could not resend email"),
+    [runAuth]
+  );
+
+  const forgotPassword = useCallback(
+    (email) => runAuth(() => forgotPasswordApi(email), "Request failed"),
+    [runAuth]
+  );
+
+  const resetPassword = useCallback(
+    (token, password, passwordConfirm) =>
+      runAuth(
+        async () =>
+          setSession(await resetPasswordApi(token, password, passwordConfirm)),
+        "Reset failed"
+      ),
+    [runAuth, setSession]
+  );
+
+  const loginWithGoogle = useCallback(
+    (credential) =>
+      runAuth(
+        async () => setSession(await googleAuthApi(credential)),
+        "Google sign-in failed"
+      ),
+    [runAuth, setSession]
+  );
+
+  const loginWithFacebook = useCallback(
+    (accessToken, userID) =>
+      runAuth(
+        async () => setSession(await facebookAuthApi(accessToken, userID)),
+        "Facebook sign-in failed"
+      ),
+    [runAuth, setSession]
+  );
 
   const logout = useCallback(async () => {
-    setLoading(true);
     setError(null);
     try {
       await logoutUser();
-      setUser(null);
-      try {
-        localStorage.removeItem("shopwave-user");
-      } catch {}
-    } catch (err) {
-      setError(err.message || "Logout failed");
-    } finally {
-      setLoading(false);
-    }
+    } catch {}
+    setUser(null);
+    try {
+      localStorage.removeItem("shopwave-user");
+    } catch {}
   }, []);
 
   return (
@@ -75,7 +143,14 @@ export function AuthProvider({ children }) {
         user,
         login,
         register,
+        verifyEmail,
+        resendVerification,
+        forgotPassword,
+        resetPassword,
+        loginWithGoogle,
+        loginWithFacebook,
         logout,
+        updateUser,
         isLoggedIn: !!user,
         loading,
         error,
