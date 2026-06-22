@@ -13,7 +13,6 @@ import {
   LockOutlined as LockIcon,
   PersonOutline as PersonIcon,
   PhoneOutlined as PhoneIcon,
-  MarkEmailReadOutlined as InboxIcon,
 } from "@mui/icons-material";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
@@ -37,7 +36,6 @@ export default function Login() {
     password: "",
   });
   const [errors, setErrors] = useState({});
-  const [registeredEmail, setRegisteredEmail] = useState(null); // post-signup panel
   const [unverified, setUnverified] = useState(null); // { email } on 403
 
   const set = (field) => (e) => {
@@ -82,7 +80,7 @@ export default function Login() {
         navigate(from, { replace: true });
       } else {
         const { firstName, lastName } = splitName(form.name);
-        await register({
+        const user = await register({
           firstName,
           lastName,
           email: form.email,
@@ -90,8 +88,9 @@ export default function Login() {
           password: form.password,
           passwordConfirm: form.password,
         });
-        // Strict verification — show the "check your inbox" panel.
-        setRegisteredEmail(form.email);
+        // Simple signup — user is logged in right away.
+        toast(`Welcome, ${user?.firstName || user?.email}! 🎉`, "success");
+        navigate(from, { replace: true });
       }
     } catch (err) {
       const message = err.data?.message || err.message || "Something went wrong";
@@ -122,40 +121,6 @@ export default function Login() {
     setUnverified(null);
     setForm({ name: "", email: "", phone: "", password: "" });
   };
-
-  // ── Post-signup: check-your-inbox panel ──────────────────────────────────
-  if (registeredEmail) {
-    return (
-      <AuthShell
-        title="Verify your email"
-        subtitle={`We sent a verification link to ${registeredEmail}. Click it to activate your account, then sign in.`}
-      >
-        <div className="flex flex-col items-center text-center gap-6 py-2">
-          <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center">
-            <InboxIcon sx={{ fontSize: 32, color: "#3a5594" }} />
-          </div>
-          <p className="text-xs font-bold text-gray-500">
-            Didn't receive it? Check spam, or resend below.
-          </p>
-          <button
-            onClick={() => handleResend(registeredEmail)}
-            className="w-full py-3.5 border border-gray-200 rounded-xl font-black text-xs tracking-widest text-gray-700 hover:bg-gray-50 transition-all"
-          >
-            RESEND VERIFICATION EMAIL
-          </button>
-          <button
-            onClick={() => {
-              setRegisteredEmail(null);
-              setMode("login");
-            }}
-            className="w-full py-4 bg-[#131b2e] text-white font-black text-sm tracking-widest rounded-xl hover:bg-black transition-all"
-          >
-            BACK TO SIGN IN
-          </button>
-        </div>
-      </AuthShell>
-    );
-  }
 
   return (
     <AuthShell

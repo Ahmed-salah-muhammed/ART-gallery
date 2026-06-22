@@ -31,8 +31,7 @@ export async function registerUser({
   password,
   passwordConfirm,
 }) {
-  // Strict verification: registration does NOT return a session token.
-  // Returns { needsVerification, email, message }.
+  // Simple signup: registration logs the user in straight away.
   const data = await api.post("/auth/register", {
     firstName,
     lastName,
@@ -41,7 +40,8 @@ export async function registerUser({
     password,
     passwordConfirm,
   });
-  return data;
+  persistToken(data.token);
+  return data.user;
 }
 
 export async function loginUser(email, password) {

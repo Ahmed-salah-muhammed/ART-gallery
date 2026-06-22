@@ -71,11 +71,14 @@ export function AuthProvider({ children }) {
     [runAuth, setSession]
   );
 
-  // Strict verification: register does NOT log the user in. Returns the
-  // server response ({ needsVerification, email, message }).
+  // Simple signup: register logs the user in immediately.
   const register = useCallback(
-    (payload) => runAuth(() => registerUser(payload), "Registration failed"),
-    [runAuth]
+    (payload) =>
+      runAuth(
+        async () => setSession(await registerUser(payload)),
+        "Registration failed"
+      ),
+    [runAuth, setSession]
   );
 
   const verifyEmail = useCallback(
